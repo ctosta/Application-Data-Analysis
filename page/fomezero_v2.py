@@ -22,7 +22,8 @@ from folium.plugins import MarkerCluster
 
 st.set_page_config(
     page_title = "Fome Zero",
-    page_icon = "🍴"
+    page_icon = "🍴",
+    layout= "wide"
 )
 
 # Import dataset #
