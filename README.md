@@ -1,4 +1,7 @@
-# Fome Zero - Dashboard Streamlit
-This repository contains files and script to build a company strategy dashboard - Final Project (FTC: Análise de Dados em Python / Comunidade DS)
+# FTC: Análise de Dados + Dashboard no Streamlit
 
-https://fomezeroproject-carolinetosta.streamlit.app/
+<img src="https://imgur.com/6bugRDL.png" alt="drawing" width="100%"/>
+
+# 1. Projeto de Análise de Dados Fome Zero
+
+[Dashboard Streamlit](https://fomezeroproject-carolinetosta.streamlit.app/)
