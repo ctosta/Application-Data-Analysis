@@ -1,24 +1,23 @@
 ######## author = Caroline Tosta
 ######## insitution = Comunidade DS
 ######## website = https://www.linkedin.com/in/ctosta/
-######## version = 2.0
+######## version = 1.0
 
 # --------------------------------------------------------------------- FOME ZERO --------------------------------------------------------------------
 # Libraries #
-import pandas                       as pd
-import numpy                        as np
+from haversine import haversine
+import plotly.express as px
+import plotly.graph_objects as go
+
+import pandas as pd
+import numpy as np
 import inflection
 import folium
-import streamlit                    as st
-import plotly.express               as px
-import plotly.graph_objects         as go
-
-from numerize                       import numerize                     as nm
-from haversine                      import haversine
-from streamlit_folium               import folium_static
-from PIL                            import Image
-from streamlit_option_menu          import option_menu
-from folium.plugins                 import MarkerCluster
+from streamlit_folium import folium_static
+import streamlit as st
+from PIL import Image
+from streamlit_option_menu import option_menu
+from folium.plugins import MarkerCluster
 
 
 st.set_page_config(
@@ -168,35 +167,35 @@ def select_countries (df):
     return paises
 
 # --------------------------------------------------------------------------MENU PAÍSES---------------------------------------------------------------------------------
-def cols_operations (df, col1, col2, operation, labelx, labely, order):
+def countries_operations (df, coly, operation, labelx, labely):
     if operation == 'count':
         
-        df_aux = df.loc[:, [col1, col2]].groupby(col1).count().reset_index()
-        fig = px.bar(df_aux, x = col1, y = col2, text_auto=True, color = col1, 
+        df_aux = df.loc[:, ['country_code', coly]].groupby('country_code').count().reset_index()
+        fig = px.bar(df_aux, x = 'country_code', y = coly, text_auto=True, color = 'country_code', 
                      color_discrete_sequence = px.colors.sequential.amp, 
-                     labels={col2:labely, col1:labelx}, height= 600)
+                     labels={coly:labely, 'country_code':labelx}, height= 600)
         
         fig.update_traces(textfont_size=14, textposition="outside", marker_line_color='rgb(69, 71, 72, 1)', 
                           marker_line_width=0.8)
-        fig.update_layout(barmode='stack', xaxis={'categoryorder': order}, showlegend=False)
+        fig.update_layout(barmode='stack', xaxis={'categoryorder': 'total descending'}, showlegend=False)
     
     elif operation == 'nunique':
-        df_aux = df.loc[:, [col1, col2]].groupby(col1).nunique().reset_index()
-        fig = px.bar(df_aux, x = col1, y = col2, text_auto=True, color = col1,
+        df_aux = df.loc[:, ['country_code', coly]].groupby('country_code').nunique().reset_index()
+        fig = px.bar(df_aux, x = 'country_code', y = coly, text_auto=True, color = 'country_code',
                      color_discrete_sequence = px.colors.sequential.amp, 
-                    labels={col2:labely, col1:labelx}, height= 600)
+                    labels={coly:labely, 'country_code':labelx}, height= 600)
         fig.update_traces(textfont_size=14, textposition="outside", marker_line_color='rgb(69, 71, 72, 1)', 
                           marker_line_width=0.8)
-        fig.update_layout(barmode='stack', xaxis={'categoryorder': order}, showlegend=False)
+        fig.update_layout(barmode='stack', xaxis={'categoryorder': 'total descending'}, showlegend=False)
         
     elif operation == 'mean':
-        df_aux = np.round ( df.loc[:, [col1, col2]].groupby(col1).mean().reset_index(), 2)
-        fig = px.bar(df_aux, x = col1, y = col2, text_auto=True, color = col1,
+        df_aux = np.round ( df.loc[:, ['country_code', coly]].groupby('country_code').mean().reset_index(), 2)
+        fig = px.bar(df_aux, x = 'country_code', y = coly, text_auto=True, color = 'country_code',
                      color_discrete_sequence = px.colors.sequential.amp, 
-                    labels={col2:labely, col1:labelx}, height= 600)
+                    labels={coly:labely, 'country_code':labelx}, height= 600)
         fig.update_traces(textfont_size=14, textposition="outside", marker_line_color='rgb(69, 71, 72, 1)', 
                           marker_line_width=0.8)
-        fig.update_layout(barmode='stack', xaxis={'categoryorder': order}, showlegend=False)
+        fig.update_layout(barmode='stack', xaxis={'categoryorder': 'total descending'}, showlegend=False)
     
     return fig
 
@@ -378,7 +377,7 @@ st.sidebar.markdown ("""---""")
 with st.sidebar.container():
     
     result = df['restaurant_name'].nunique()
-    st.markdown(f'### 🍽️  {nm.numerize((result))}  Restaurantes')
+    st.markdown(f'### 🍽️  {result}  Restaurantes')
     
 with st.sidebar.container():
     
@@ -397,8 +396,8 @@ with st.sidebar.container():
 
 with st.sidebar.container():
     
-    result = np.sum(df['votes']).item()
-    st.markdown(f'### ⭐  {nm.numerize((result),3)} Avaliações')    
+    result = df['votes'].sum()
+    st.markdown(f'### ⭐  {result} Avaliações')    
 
 st.sidebar.markdown ("""---""")
 st.sidebar.markdown ('###### Powered by Caroline Tosta - Comunidade DS')
@@ -421,46 +420,30 @@ if selected == 'Países':
         
         with st.container():
             st.markdown("""---""")
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.markdown ('###### _Quantidade de Restaurantes por País_')
-                fig = cols_operations(df, 'country_code', 'restaurant_name', 'count', 'Países', 'Quantidade de Restaurantes', 'total descending')
-                st.plotly_chart (fig, use_container_width = True)
+            st.markdown ('###### _Quantidade de Restaurantes por País_')
+            fig = countries_operations(df, 'restaurant_name', 'count', 'Países', 'Quantidade de Restaurantes')
+            st.plotly_chart (fig, use_container_width = True)
 
-            with col2:
-                st.markdown ('###### _Quantidade de Cidades Avaliadas por País_')
-                fig = cols_operations(df, 'country_code', 'city', 'nunique', 'Países', 'Quantidade de Cidades Avaliadas', 'total descending')
-                st.plotly_chart (fig, use_container_width = True)
-        
         with st.container():
             st.markdown("""---""")
-            col3, col4 = st.columns(2)
+            st.markdown ('###### _Média de Avaliações feitas por País_')
+            fig = countries_operations(df, 'votes', 'mean', 'Países', 'Quantidade de Avaliações')
+            st.plotly_chart (fig, use_container_width = True)
             
-            with col3:
-                st.markdown ('###### _Quantidade de Avaliações feitas por País_')
-                df_aux = df.loc[df['votes'] != 0, ['country_code', 'votes']].groupby('country_code').count().reset_index()
-                fig = px.bar(df_aux, x = 'country_code', y = 'votes', text_auto=True, color = 'country_code', 
-                             color_discrete_sequence = px.colors.sequential.amp, 
-                             labels={'votes':'Quantidade de Avaliações', 'country_code':'Países'}, height= 600)
+            
+        with st.container():
+            st.markdown("""---""")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown ('###### _Quantidade de Tipos de Culinária dos Restaurantes por País_')
+                df_tab = df_tables(df,'nunique')
+                st.dataframe(df_tab, use_container_width = True)
         
-                fig.update_traces(textfont_size=14, textposition="outside", marker_line_color='rgb(69, 71, 72, 1)', 
-                          marker_line_width=0.8)
-                fig.update_layout(barmode='stack', xaxis={'categoryorder': 'total descending'}, showlegend=False)
-                st.plotly_chart (fig, use_container_width = True)
-                
-            with col4:
+            with col2:
                 st.markdown ('###### _Média de Preço (US$) de um prato para 2 pessoas por País_')
                 df_tab = df_tables(df,'mean')
                 st.dataframe(df_tab.style.format({'Average Cost for Two (US$)': '{:.2f}'}), use_container_width = True)
-                
-        with st.container():
-            st.markdown("""---""")
-            st.markdown ('###### _Médias de Avaliações por Países_')
-            fig = cols_operations (df, 'country_code', 'aggregate_rating', 'mean', 'Países', 'Avaliações', 'total descending')
-            st.plotly_chart (fig, use_container_width = True)
-        
-            
 
 elif selected == 'Cidades':
     menu_cities = st.container()
@@ -470,7 +453,7 @@ elif selected == 'Cidades':
             
         with st.container():
             st.markdown("""---""")
-            st.markdown('######  _Top 10 Cidades com mais Restaurantes_')
+            st.markdown('######  _Top 10 Cidades com mais restaurantes_')
             fig = top_ten_countries(df)
             st.plotly_chart (fig, use_container_width = True)
 
@@ -480,18 +463,18 @@ elif selected == 'Cidades':
             col1, col2 = st.columns(2)
             
             with col1:
-                st.markdown ('######  _Top 7 Cidades com Restaurantes com Média de Avaliação acima de 4_')
+                st.markdown ('######  _Top 7 Cidades com restaurantes com média de avaliação acima de 4_')
                 fig = avg_topseven_cities (df, 'maior_igual', 4.0)
                 st.plotly_chart (fig, use_container_width = True)
 
             with col2:
-                st.markdown ('######  _Top 7 Cidades com Restaurantes com Média de Avaliação abaixo de 2.5_')
+                st.markdown ('######  _Top 7 Cidades com restaurantes com média de avaliação abaixo de 2.5_')
                 fig = avg_topseven_cities (df, 'menor_igual', 2.5)
                 st.plotly_chart (fig, use_container_width = True)
 
         with st.container():
             st.markdown ("""---""")
-            st.markdown('######  _Top 10 Cidades com mais Variedades Culinárias_')
+            st.markdown('######  _Top 10  Cidades com mais variedades culinárias_')
             fig = cooking_varieties(df)
             st.plotly_chart (fig, use_container_width = True)
 #---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -500,7 +483,7 @@ elif selected == 'Culinárias':
     
     with menu_culinarias:
         
-        top_culinarias = st.slider('Escolha a Quantidade de Tipos de Culinárias', 0, 20, 10)
+        top_culinarias = st.slider('Escolha a quantidade de tipos de culinárias', 0, 20, 10)
         st.markdown ("""---""")
         
         
@@ -516,6 +499,11 @@ elif selected == 'Culinárias':
                 st.markdown(f'###### _Top {top_culinarias}: Os Piores Tipos de Culinárias_')
                 fig = top_cuisines(df, 'pior', top_culinarias)
                 st.plotly_chart (fig, use_container_width = True)
+        
+        with st.expander("Clica em cima para ver os Tipos de Culinária que não têm avaliação"):
+            st.markdown ('###### _Restaurantes e Culinárias com avaliação 0_')
+            df_zero = zero_rating(df)
+            st.dataframe(df_zero.style.format({'Aggregate Rating': '{:.2f}'}), use_container_width = True)
 #----------------------------------------------------------------------------------------------------------------------------------------
         
     
@@ -530,7 +518,7 @@ elif selected == 'Restaurantes':
         
         
         with st.expander("Clica em cima para ver o Top Restaurantes de cada País"):
-            top_20 = st.slider('Escolha a Quantidade de Restaurantes', 0, 20, 10)
+            top_20 = st.slider('Escolha a quantidade de restaurantes', 0, 20, 10)
         
             paises = select_countries(df)
 
@@ -539,8 +527,3 @@ elif selected == 'Restaurantes':
                 st.subheader(f'_Top {top_20}: Restaurantes_')
                 df2 = top_restaurants(df)
                 st.dataframe(df2.style.format({'Average Cost for Two (US$)': '{:.2f}', 'Aggregate Rating': '{:.2f}', 'Votes': '{:.0f}'}), use_container_width = True)
-        
-        with st.expander("Clica em cima para ver os Restaurantes que não receberam Avaliação"):
-            st.markdown ('###### _Restaurantes e Culinárias com avaliação 0_')
-            df_zero = zero_rating(df)
-            st.dataframe(df_zero.style.format({'Aggregate Rating': '{:.2f}'}), use_container_width = True)
