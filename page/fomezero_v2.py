@@ -370,8 +370,23 @@ def top_restaurants(df):
     return df2
 #-----------------------------------------------------------------------------BARRA LATERAL-----------------------------------------------------------------------------
 
+st.markdown(
+    f"""
+    <style>
+    .centered-container {{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }}
+    </style>
+    """
+    , unsafe_allow_html=True
+)
+
 image = Image.open('page/logo.png')
-st.sidebar.image(image, width = 220)
+st.sidebar.markdown('<div class="centered-container"><img src="page/logo.png" style="width: 220px;"></div>', unsafe_allow_html=True)
 
 st.sidebar.markdown ("""---""")
 # Painel lado esquerdo #
